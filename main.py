@@ -7,6 +7,7 @@ import requests
 start_time = None
 final_url = "https://racks.octanis.org/api/v1/racks/1/geography/KEY"
 state = 0
+start_state = 0
 channel = port.PA10
 gpio.init()
 gpio.setcfg(channel, gpio.INPUT)
@@ -24,8 +25,9 @@ try:
        state = 0
     if(prevstate != state):
     	print("change detected")
-        if (start_time == None):
+        if (start_time is None):
             start_time = time.time()
+            start_state = state
         File.write(strftime("%a, %d %b %Y %H:%M:%S", gmtime()) + " MED 3 2215 is " + ("opened." if state == 1 else "closed.") + "\n")
         
     else:
@@ -33,8 +35,9 @@ try:
             elapsed_time = time.time() - start_time
             if (elapsed_time >= 60):
                 start_time = None
-                payload = {'accessibleToPublic': state}
-            	response = requests.post(final_url, data=payload)
+                if (start_state == state):
+                    payload = {'accessibleToPublic': state}
+                    response = requests.post(final_url, data=payload)
 
 except KeyboardInterrupt:
     print ("Goodbye.")
